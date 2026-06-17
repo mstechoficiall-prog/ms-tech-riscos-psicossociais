@@ -102,8 +102,30 @@ th{background:#f1f5f9}
 <div class="section-title">
 <h2>Nova avaliacao</h2>
 </div>
-<label>Empresa</label>
-<input id="campEmpresa" placeholder="Nome da empresa">
+<div class="grid">
+<div>
+<label>Empregador</label>
+<input id="campEmpresa" placeholder="Razao social ou nome do empregador">
+</div>
+<div>
+<label>CNPJ</label>
+<input id="campCnpj" placeholder="00.000.000/0000-00">
+</div>
+<div>
+<label>CNAE</label>
+<input id="campCnae" placeholder="Codigo CNAE">
+</div>
+<div>
+<label>Grau de risco</label>
+<select id="campGrauRisco">
+<option value="">Selecione</option>
+<option value="1">Grau 1</option>
+<option value="2">Grau 2</option>
+<option value="3">Grau 3</option>
+<option value="4">Grau 4</option>
+</select>
+</div>
+</div>
 <button class="success" onclick="gerarLinkPesquisa()">Gerar link do questionario</button>
 
 <div id="areaLink" class="hidden">
@@ -158,7 +180,7 @@ th{background:#f1f5f9}
 <span id="totalEmpresas" class="muted">0 cadastradas</span>
 </div>
 <table>
-<thead><tr><th>Empresa</th><th>Pesquisas</th><th>Respostas</th><th>Risco</th></tr></thead>
+<thead><tr><th>Empregador</th><th>CNPJ</th><th>CNAE</th><th>Grau</th><th>Pesquisas</th><th>Respostas</th><th>Risco</th></tr></thead>
 <tbody id="tabelaEmpresas"></tbody>
 </table>
 </div>
@@ -169,7 +191,7 @@ th{background:#f1f5f9}
 <span class="muted">Links por empresa</span>
 </div>
 <table>
-<thead><tr><th>Codigo</th><th>Empresa</th><th>Respostas</th><th>Link</th></tr></thead>
+<thead><tr><th>Codigo</th><th>Empregador</th><th>CNPJ</th><th>CNAE</th><th>Grau</th><th>Respostas</th><th>Link</th></tr></thead>
 <tbody id="tabelaPesquisas"></tbody>
 </table>
 </div>
@@ -409,8 +431,11 @@ function inicializar(){
  const params = new URLSearchParams(window.location.search);
  const codigo = params.get('pesquisa');
  const empresa = params.get('empresa');
+ const cnpj = params.get('cnpj');
+ const cnae = params.get('cnae');
+ const grauRisco = params.get('grauRisco');
  if(codigo){
-  abrirQuestionarioPorLink(codigo, empresa);
+  abrirQuestionarioPorLink(codigo, empresa, {cnpj, cnae, grauRisco});
  } else {
   show('telaAdminLogin');
  }
@@ -455,6 +480,27 @@ function htmlSeguro(txt){
  return String(txt ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function normalizarTexto(valor){
+ return (valor || '').trim();
+}
+
+function dadosEmpresa(pesquisa){
+ return {
+  empregador: normalizarEmpresa(pesquisa?.empregador || pesquisa?.empresa),
+  cnpj: normalizarTexto(pesquisa?.cnpj),
+  cnae: normalizarTexto(pesquisa?.cnae),
+  grauRisco: normalizarTexto(pesquisa?.grauRisco)
+ };
+}
+
+function textoGrauRisco(valor){
+ return valor ? `Grau ${valor}` : '-';
+}
+
+function pesquisaPorEmpresa(pesquisas, nome){
+ return pesquisas.find(p=>normalizarEmpresa(p.empresa) === nome) || {};
+}
+
 function empresasDisponiveis(pesquisas, respostas){
  const nomes = new Set();
  pesquisas.forEach(p=>nomes.add(normalizarEmpresa(p.empresa)));
@@ -484,10 +530,15 @@ function selecionarEmpresa(valor){
 }
 
 function gerarLinkPesquisa(){
+ const empregador = normalizarEmpresa(document.getElementById('campEmpresa').value);
  const pesquisa = {
   codigo: gerarCodigo(),
   criadaEm: new Date().toLocaleString('pt-BR'),
-  empresa: normalizarEmpresa(document.getElementById('campEmpresa').value),
+  empresa: empregador,
+  empregador,
+  cnpj: normalizarTexto(document.getElementById('campCnpj').value),
+  cnae: normalizarTexto(document.getElementById('campCnae').value),
+  grauRisco: normalizarTexto(document.getElementById('campGrauRisco').value),
   setor: '-',
   funcao: '-',
   grupo: '-',
@@ -499,17 +550,20 @@ function gerarLinkPesquisa(){
  salvarPesquisas(lista);
  empresaSelecionada = pesquisa.empresa === '-' ? '' : pesquisa.empresa;
 
- const link = criarUrlPesquisa(pesquisa.codigo, pesquisa.empresa);
+ const link = criarUrlPesquisa(pesquisa.codigo, pesquisa.empresa, pesquisa);
  document.getElementById('linkGerado').value = link;
  document.getElementById('areaLink').classList.remove('hidden');
  atualizarAdmin();
 }
 
-function criarUrlPesquisa(codigo, empresa){
+function criarUrlPesquisa(codigo, empresa, dados={}){
  const base = window.location.origin + window.location.pathname;
  const params = new URLSearchParams();
  params.set('pesquisa', codigo);
  if(empresa) params.set('empresa', empresa);
+ if(dados.cnpj) params.set('cnpj', dados.cnpj);
+ if(dados.cnae) params.set('cnae', dados.cnae);
+ if(dados.grauRisco) params.set('grauRisco', dados.grauRisco);
  return base + '?' + params.toString();
 }
 
@@ -534,14 +588,19 @@ function enviarWhatsApp(){
  window.open('https://wa.me/?text=' + texto, '_blank');
 }
 
-function abrirQuestionarioPorLink(codigo, empresaParam){
+function abrirQuestionarioPorLink(codigo, empresaParam, dadosParam={}){
  let pesquisa = carregarPesquisas().find(p=>p.codigo === codigo);
  if(!pesquisa){
   if(empresaParam){
+   const empregador = normalizarEmpresa(empresaParam);
    pesquisa = {
     codigo,
     criadaEm: new Date().toLocaleString('pt-BR'),
-    empresa: empresaParam,
+    empresa: empregador,
+    empregador,
+    cnpj: normalizarTexto(dadosParam.cnpj),
+    cnae: normalizarTexto(dadosParam.cnae),
+    grauRisco: normalizarTexto(dadosParam.grauRisco),
     setor: '-',
     funcao: '-',
     grupo: '-',
@@ -555,11 +614,19 @@ function abrirQuestionarioPorLink(codigo, empresaParam){
    document.body.innerHTML = '<div class="container"><div class="card"><h2>Link inválido</h2><p>Esta pesquisa não foi encontrada neste navegador.</p></div></div>';
    return;
   }
+ } else {
+  pesquisa.empregador = pesquisa.empregador || pesquisa.empresa;
+  pesquisa.cnpj = pesquisa.cnpj || normalizarTexto(dadosParam.cnpj);
+  pesquisa.cnae = pesquisa.cnae || normalizarTexto(dadosParam.cnae);
+  pesquisa.grauRisco = pesquisa.grauRisco || normalizarTexto(dadosParam.grauRisco);
  }
  pesquisaAtual = pesquisa;
  show('telaPublico');
  document.getElementById('dadosPesquisa').innerHTML =
- `<strong>Empresa:</strong> ${pesquisa.empresa}`;
+ `<strong>Empregador:</strong> ${htmlSeguro(pesquisa.empresa)}<br>
+ <strong>CNPJ:</strong> ${htmlSeguro(pesquisa.cnpj || '-')}<br>
+ <strong>CNAE:</strong> ${htmlSeguro(pesquisa.cnae || '-')}<br>
+ <strong>Grau de risco:</strong> ${htmlSeguro(textoGrauRisco(pesquisa.grauRisco))}`;
  const div = document.getElementById('questions');
  div.innerHTML = '';
  dominios.forEach((d,di)=>{
@@ -584,6 +651,10 @@ function salvarResposta(){
   pesquisaCodigo: pesquisaAtual.codigo,
   data: new Date().toLocaleString('pt-BR'),
   empresa: pesquisaAtual.empresa,
+  empregador: pesquisaAtual.empregador || pesquisaAtual.empresa,
+  cnpj: pesquisaAtual.cnpj || '',
+  cnae: pesquisaAtual.cnae || '',
+  grauRisco: pesquisaAtual.grauRisco || '',
   setor: pesquisaAtual.setor,
   funcao: pesquisaAtual.funcao,
   grupo: pesquisaAtual.grupo,
@@ -749,13 +820,14 @@ function atualizarAdmin(){
  const te = document.getElementById('tabelaEmpresas');
  te.innerHTML = '';
  if(!empresas.length){
-  te.innerHTML = '<tr><td colspan="4">Nenhuma empresa cadastrada.</td></tr>';
+  te.innerHTML = '<tr><td colspan="7">Nenhuma empresa cadastrada.</td></tr>';
  }
  empresas.forEach(nome=>{
   const respEmpresa = respostas.filter(r=>normalizarEmpresa(r.empresa) === nome);
   const pesqEmpresa = pesquisas.filter(p=>normalizarEmpresa(p.empresa) === nome);
+  const dados = dadosEmpresa(pesquisaPorEmpresa(pesquisas, nome));
   const riscoEmpresa = analisarTodas(respEmpresa).classe;
-  te.innerHTML += `<tr><td><button class="secondary" onclick="selecionarEmpresa('${encodeURIComponent(nome)}')">${htmlSeguro(nome)}</button></td><td>${pesqEmpresa.length}</td><td>${respEmpresa.length}</td><td><span class="badge ${classeCss(riscoEmpresa)}">${riscoEmpresa}</span></td></tr>`;
+  te.innerHTML += `<tr><td><button class="secondary" onclick="selecionarEmpresa('${encodeURIComponent(nome)}')">${htmlSeguro(nome)}</button></td><td>${htmlSeguro(dados.cnpj || '-')}</td><td>${htmlSeguro(dados.cnae || '-')}</td><td>${htmlSeguro(textoGrauRisco(dados.grauRisco))}</td><td>${pesqEmpresa.length}</td><td>${respEmpresa.length}</td><td><span class="badge ${classeCss(riscoEmpresa)}">${riscoEmpresa}</span></td></tr>`;
  });
 
  const tr = document.getElementById('tabelaRespostas');
@@ -771,17 +843,18 @@ function atualizarAdmin(){
  const tp = document.getElementById('tabelaPesquisas');
  tp.innerHTML = '';
  if(!pesquisasEscopo.length){
-  tp.innerHTML = '<tr><td colspan="4">Nenhuma pesquisa cadastrada neste escopo.</td></tr>';
+  tp.innerHTML = '<tr><td colspan="7">Nenhuma pesquisa cadastrada neste escopo.</td></tr>';
  }
  pesquisasEscopo.slice().reverse().forEach(p=>{
+  const dados = dadosEmpresa(p);
   const qtd = respostas.filter(r=>r.pesquisaCodigo === p.codigo).length;
-  tp.innerHTML += `<tr><td>${htmlSeguro(p.codigo)}</td><td>${htmlSeguro(p.empresa)}</td><td>${qtd}</td><td><button onclick="selecionarLink('${p.codigo}')">Copiar</button></td></tr>`;
+  tp.innerHTML += `<tr><td>${htmlSeguro(p.codigo)}</td><td>${htmlSeguro(p.empresa)}</td><td>${htmlSeguro(dados.cnpj || '-')}</td><td>${htmlSeguro(dados.cnae || '-')}</td><td>${htmlSeguro(textoGrauRisco(dados.grauRisco))}</td><td>${qtd}</td><td><button onclick="selecionarLink('${p.codigo}')">Copiar</button></td></tr>`;
  });
 }
 
 function selecionarLink(codigo){
  const pesquisa = carregarPesquisas().find(p=>p.codigo === codigo);
- const link = criarUrlPesquisa(codigo, pesquisa ? pesquisa.empresa : '');
+ const link = criarUrlPesquisa(codigo, pesquisa ? pesquisa.empresa : '', pesquisa || {});
  document.getElementById('linkGerado').value = link;
  document.getElementById('areaLink').classList.remove('hidden');
  copiarLink();
@@ -931,11 +1004,25 @@ function gerarRelatorio(){
  const respostas = respostasDoEscopo(carregarRespostas());
  const analise = analisarTodas(respostas);
  const escopo = empresaSelecionada || 'Todas as empresas';
+ const pesquisas = carregarPesquisas();
+ const dados = empresaSelecionada ? dadosEmpresa(pesquisaPorEmpresa(pesquisas, empresaSelecionada)) : {};
  document.getElementById('relatorio').textContent =
 `RELATORIO DE INVESTIGACAO DE RISCOS PSICOSSOCIAIS - MS TECH
 
 Empresa/Escopo:
 ${escopo}
+
+Empregador:
+${empresaSelecionada || 'Todas as empresas'}
+
+CNPJ:
+${dados.cnpj || '-'}
+
+CNAE:
+${dados.cnae || '-'}
+
+Grau de risco:
+${textoGrauRisco(dados.grauRisco)}
 
 Total de respostas:
 ${respostas.length}
@@ -1012,10 +1099,10 @@ function exportarCSV(){
 function exportarExcel(){
  const lista = respostasDoEscopo(carregarRespostas());
  if(!lista.length){ alert('Nao ha respostas para exportar neste escopo.'); return; }
- const headers = ['Data','Pesquisa','Empresa','Classificacao'];
+ const headers = ['Data','Pesquisa','Empregador','CNPJ','CNAE','Grau de risco','Classificacao'];
  const rows = lista.map(r => {
   const analise = analisarResposta(r);
-  return [r.data, r.pesquisaCodigo, r.empresa, analise.classe];
+  return [r.data, r.pesquisaCodigo, r.empregador || r.empresa, r.cnpj || '', r.cnae || '', textoGrauRisco(r.grauRisco), analise.classe];
  });
  const xmlHeader = `<?xml version="1.0" encoding="UTF-8"?>\n` +
   `<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ` +
