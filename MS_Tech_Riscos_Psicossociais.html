@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MS Tech - Riscos Psicossociais</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#eef2f6;color:#1f2937}
+header{background:#102a43;color:#fff;padding:22px}
+header h1{margin:0;font-size:24px}
+header p{margin:6px 0 0}
+.container{max-width:1200px;margin:20px auto;padding:0 16px}
+.card{background:#fff;border-radius:8px;padding:18px;border:1px solid #d9e2ec;box-shadow:0 8px 22px rgba(15,23,42,.06);margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+h2{font-size:19px;margin:0 0 14px;color:#0f3d5e}
+h3{font-size:16px;margin:10px 0;color:#111827}
+label{display:block;font-weight:bold;margin-top:10px;font-size:14px}
+input,select,textarea{width:100%;padding:10px;margin-top:5px;border:1px solid #cfd8e3;border-radius:8px;font-size:14px;background:#fff}
+textarea{min-height:75px;resize:vertical}
+button{background:#0f3d5e;color:#fff;border:0;padding:12px 16px;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:12px}
+button.secondary{background:#4b5563}
+button.danger{background:#991b1b}
+button.success{background:#166534}
+button.whats{background:#15803d}
+button:hover{opacity:.92}
+.hidden{display:none}
+.admin-top{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:stretch}
+.admin-title{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.admin-title h2{margin-bottom:6px}
+.admin-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.admin-actions button{margin-top:0}
+.selector-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
+.section-title h2{margin:0}
+.muted{color:#64748b;font-size:13px}
+.empresa-pill{display:inline-block;background:#e0f2fe;color:#075985;border:1px solid #bae6fd;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:bold}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.metric{background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:14px}
+.metric span{display:block;font-size:12px;color:#64748b;margin-bottom:6px}
+.metric strong{display:block;font-size:26px;color:#102a43}
+.empresa-layout{display:grid;grid-template-columns:minmax(320px,.9fr) 1.1fr;gap:16px}
+.table-actions{display:flex;gap:8px;flex-wrap:wrap}
+.table-actions button{margin-top:0;padding:8px 10px}
+.dim{border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin:12px 0;background:#fafafa}
+.dim-title{font-weight:bold;color:#111827;margin-bottom:8px}
+.question{display:grid;grid-template-columns:1fr minmax(560px,680px);gap:14px;align-items:start;margin:12px 0}
+.question span{font-size:14px}
+.radio-group{display:flex;flex-wrap:nowrap;gap:8px;white-space:nowrap}
+.radio-option{display:inline-flex;align-items:center;gap:6px;margin:0;padding:8px 10px;border:1px solid #cfd8e3;border-radius:8px;background:#fff;font-size:13px;font-weight:normal;cursor:pointer}
+.radio-option input[type="radio"]{width:auto;margin:0;padding:0}
+.radio-option:has(input[type="radio"]:checked){border-color:#0f3d5e;background:#e0f2fe;color:#0f3d5e;font-weight:bold}
+.badge{display:inline-block;padding:7px 12px;border-radius:999px;font-weight:bold}
+.baixo{background:#dcfce7;color:#166534}
+.medio{background:#fef9c3;color:#854d0e}
+.alto{background:#ffedd5;color:#9a3412}
+.critico{background:#fee2e2;color:#991b1b}
+.auto{background:#f8fafc;border:1px dashed #94a3b8;padding:10px;border-radius:8px;white-space:pre-wrap;min-height:38px;overflow-wrap:anywhere}
+.small{font-size:12px;color:#64748b}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid #e5e7eb;padding:8px;text-align:left;vertical-align:top}
+th{background:#f1f5f9}
+.nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.linkbox{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+.notice{background:#ecfeff;border-left:5px solid #0891b2;padding:12px;border-radius:8px;margin:10px 0}
+@media(max-width:900px){.grid,.admin-top,.empresa-layout{grid-template-columns:1fr}.question{grid-template-columns:1fr}.metric-grid{grid-template-columns:1fr 1fr}.linkbox,.selector-row{grid-template-columns:1fr}.admin-title{display:block}.admin-actions{justify-content:flex-start;margin-top:12px}}
+</style>
+</head>
+<body>
+<header>
+<h1>MS Tech - Riscos Psicossociais</h1>
+<p>Sistema de avaliação de riscos psicossociais baseado na NR-1.</p>
+</header>
+
+<div class="container">
+
+<section id="telaAdminLogin" class="card">
+<h2>Acesso do Administrador</h2>
+<label>Senha do administrador</label>
+<input type="password" id="senhaAdmin" placeholder="Digite a senha">
+<button onclick="entrarAdmin()">Entrar</button>
+</section>
+
+<section id="telaAdmin" class="hidden">
+<div class="card">
+<div class="admin-title">
+<div>
+<h2>Painel administrativo</h2>
+<div class="muted">Gestao de avaliacoes por empresa</div>
+</div>
+<div class="admin-actions">
+<button onclick="atualizarAdmin()">Atualizar</button>
+<button onclick="exportarExcel()">Exportar Excel</button>
+<button onclick="limparDados()" class="danger">Limpar dados</button>
+<button onclick="sairAdmin()" class="secondary">Sair</button>
+</div>
+</div>
+</div>
+
+<div class="admin-top">
+<div class="card">
+<div class="section-title">
+<h2>Nova avaliacao</h2>
+</div>
+<label>Empresa</label>
+<input id="campEmpresa" placeholder="Nome da empresa">
+<button class="success" onclick="gerarLinkPesquisa()">Gerar link do questionario</button>
+
+<div id="areaLink" class="hidden">
+<label>Link gerado</label>
+<div class="linkbox">
+<input id="linkGerado" readonly>
+<button onclick="copiarLink()">Copiar link</button>
+</div>
+<div class="nav">
+<button class="whats" onclick="enviarWhatsApp()">Enviar por WhatsApp</button>
+<button onclick="copiarMensagem()">Copiar mensagem</button>
+</div>
+<p class="small">Ao abrir o link, o trabalhador acessa diretamente o questionario.</p>
+</div>
+</div>
+
+<div class="card">
+<div class="section-title">
+<h2>Empresa ativa</h2>
+<span id="empresaAtivaPill" class="empresa-pill">Todas</span>
+</div>
+<div class="selector-row">
+<div>
+<label>Gerenciar empresa</label>
+<select id="filtroEmpresa" onchange="trocarEmpresa()">
+<option value="">Todas as empresas</option>
+</select>
+</div>
+<button onclick="gerarRelatorio()">Gerar relatorio</button>
+</div>
+<p class="small">Indicadores, respostas, exportacoes e relatorio acompanham a empresa selecionada.</p>
+</div>
+</div>
+
+<div class="card">
+<div class="section-title">
+<h2>Indicadores</h2>
+<span id="escopoResumo" class="muted">Todas as empresas</span>
+</div>
+<div class="metric-grid">
+<div class="metric"><span>Respostas</span><strong id="kpiTotal">0</strong></div>
+<div class="metric"><span>Probabilidade</span><strong id="kpiProb">-</strong></div>
+<div class="metric"><span>Severidade</span><strong id="kpiSev">-</strong></div>
+<div class="metric"><span>Nivel do risco</span><strong id="kpiRisco">-</strong></div>
+</div>
+</div>
+
+<div class="empresa-layout">
+<div class="card">
+<div class="section-title">
+<h2>Empresas</h2>
+<span id="totalEmpresas" class="muted">0 cadastradas</span>
+</div>
+<table>
+<thead><tr><th>Empresa</th><th>Pesquisas</th><th>Respostas</th><th>Risco</th></tr></thead>
+<tbody id="tabelaEmpresas"></tbody>
+</table>
+</div>
+
+<div class="card">
+<div class="section-title">
+<h2>Pesquisas</h2>
+<span class="muted">Links por empresa</span>
+</div>
+<table>
+<thead><tr><th>Codigo</th><th>Empresa</th><th>Respostas</th><th>Link</th></tr></thead>
+<tbody id="tabelaPesquisas"></tbody>
+</table>
+</div>
+</div>
+
+<div class="grid">
+<div class="card">
+<h2>Resultado tecnico automatico</h2>
+<label>Exposicao</label>
+<div id="exposicao" class="auto"></div>
+<label>Perigos, fontes e circunstancias</label>
+<div id="perigos" class="auto"></div>
+<label>Metodologia utilizada</label>
+<div class="auto">COPSOQ II - Copenhagen Psychosocial Questionnaire, com analise por dominios psicossociais e classificacao automatica pela matriz Probabilidade x Severidade, integrada ao GRO/PGR.</div>
+<label>Grupo/Setor de referencia</label>
+<div id="grupoAuto" class="auto"></div>
+<label>Descricao do Agente Nocivo</label>
+<div id="agente" class="auto"></div>
+<label>Possiveis danos a saude</label>
+<div id="danos" class="auto"></div>
+<label>Estimativa</label>
+<div id="estimativa" class="auto"></div>
+<label>Informacao adicional necessaria</label>
+<div id="info" class="auto"></div>
+<label>Controle adicional se possivel e viavel</label>
+<div id="controle" class="auto"></div>
+</div>
+
+<div class="card">
+<h2>Media por dominio</h2>
+<table>
+<thead><tr><th>Dominio</th><th>Situacao</th></tr></thead>
+<tbody id="tabelaDominios"></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h2>Respostas registradas</h2>
+<table>
+<thead>
+<tr><th>Data</th><th>Pesquisa</th><th>Empresa</th><th>Classificacao</th></tr>
+</thead>
+<tbody id="tabelaRespostas"></tbody>
+</table>
+</div>
+
+<div class="card">
+<h2>Relatorio para PGR/GRO</h2>
+<div id="relatorio" class="auto"></div>
+</div>
+</section>
+
+<section id="telaAdminAntigo" class="hidden">
+<div class="card">
+<h2>Painel do Administrador</h2>
+<div class="nav">
+<button onclick="atualizarAdmin()">Atualizar resultados</button>
+<button onclick="exportarExcel()">Exportar Excel</button>
+<button onclick="limparDados()" class="danger">Limpar respostas</button>
+<button onclick="sairAdmin()" class="secondary">Sair</button>
+</div>
+</div>
+
+<div class="card">
+<h2>Gerar link do questionário</h2>
+<div class="grid">
+<div>
+<label>Empresa</label>
+<input id="campEmpresa" placeholder="Nome da empresa">
+</div>
+</div>
+<button class="success" onclick="gerarLinkPesquisa()">Gerar link para envio do questionário</button>
+
+<div id="areaLink" class="hidden">
+<label>Link gerado</label>
+<div class="linkbox">
+<input id="linkGerado" readonly>
+<button onclick="copiarLink()">Copiar link</button>
+</div>
+<div class="nav">
+<button class="whats" onclick="enviarWhatsApp()">Enviar por WhatsApp</button>
+<button onclick="copiarMensagem()">Copiar mensagem</button>
+</div>
+<p class="small">No GitHub Pages, envie este link aos trabalhadores. Eles verão somente o questionário, sem acesso ao painel administrativo.</p>
+</div>
+</div>
+
+<div class="card">
+<h2>Pesquisas criadas</h2>
+<table>
+<thead><tr><th>Código</th><th>Empresa</th><th>Respostas</th><th>Link</th></tr></thead>
+<tbody id="tabelaPesquisas"></tbody>
+</table>
+</div>
+
+<div class="card">
+<h2>Resumo geral</h2>
+<div class="kpi">
+<div><span>Total de respostas</span><strong id="kpiTotal">0</strong></div>
+<div><span>Probabilidade</span><strong id="kpiProb">-</strong></div>
+<div><span>Severidade</span><strong id="kpiSev">-</strong></div>
+<div><span>Nível do risco</span><strong id="kpiRisco">-</strong></div>
+</div>
+</div>
+
+<div class="grid">
+<div class="card">
+<h2>Resultado técnico automático</h2>
+<label>Exposição</label>
+<div id="exposicao" class="auto"></div>
+<label>Perigos, fontes e circunstâncias</label>
+<div id="perigos" class="auto"></div>
+<label>Metodologia utilizada</label>
+<div class="auto">COPSOQ II - Copenhagen Psychosocial Questionnaire, com análise por domínios psicossociais e classificação automática pela matriz Probabilidade × Severidade, integrada ao GRO/PGR.</div>
+<label>Grupo/Setor de referência</label>
+<div id="grupoAuto" class="auto"></div>
+<label>Descrição do Agente Nocivo</label>
+<div id="agente" class="auto"></div>
+<label>Possíveis danos à saúde</label>
+<div id="danos" class="auto"></div>
+<label>Estimativa</label>
+<div id="estimativa" class="auto"></div>
+<label>Informação adicional necessária</label>
+<div id="info" class="auto"></div>
+<label>Controle adicional se possível e viável</label>
+<div id="controle" class="auto"></div>
+</div>
+
+<div class="card">
+<h2>Média por domínio</h2>
+<table>
+<thead><tr><th>Domínio</th><th>Situação</th></tr></thead>
+<tbody id="tabelaDominios"></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h2>Respostas registradas</h2>
+<table>
+<thead>
+<tr><th>Data</th><th>Pesquisa</th><th>Empresa</th><th>Classificação</th></tr>
+</thead>
+<tbody id="tabelaRespostas"></tbody>
+</table>
+</div>
+
+<div class="card">
+<h2>Relatório para PGR/GRO</h2>
+<button onclick="gerarRelatorio()">Gerar relatório</button>
+<div id="relatorio" class="auto"></div>
+</div>
+</section>
+
+<section id="telaPublico" class="hidden">
+<div class="card">
+<h2>Avaliação de Riscos Psicossociais</h2>
+<div id="dadosPesquisa" class="notice"></div>
+<p class="small">Responda conforme sua percepção sobre o trabalho. As respostas são registradas para avaliação coletiva.</p>
+</div>
+
+<div class="card">
+<h2>Perguntas</h2>
+<div id="questions"></div>
+<button class="success" onclick="salvarResposta()">Enviar resposta</button>
+</div>
+</section>
+
+<section id="telaObrigado" class="hidden">
+<div class="card">
+<h2>Resposta registrada</h2>
+<p>Obrigado. Sua resposta foi salva para análise do administrador.</p>
+</div>
+</section>
+
+</div>
+
+<script>
+const SENHA_ADMIN = 'admin123';
+const STORAGE_RESPOSTAS = 'mstech_copsoq_respostas_v3';
+const STORAGE_PESQUISAS = 'mstech_copsoq_pesquisas_v3';
+let pesquisaAtual = null;
+let empresaSelecionada = '';
+
+const respostas = [
+{txt:'Nunca', val:0},
+{txt:'Raramente', val:25},
+{txt:'Às vezes', val:50},
+{txt:'Frequentemente', val:75},
+{txt:'Sempre', val:100}
+];
+
+const dominios = [
+{nome:'Demandas do Trabalho', risco:'sobrecarga de trabalho e pressão por prazos', perguntas:[
+'O volume de trabalho é excessivo?',
+'Os prazos são insuficientes para realizar as tarefas?',
+'Faltam pessoas para cumprir as demandas?',
+'O trabalho exige ritmo acelerado?']},
+{nome:'Organização do Trabalho', risco:'baixa autonomia, falhas de organização e indefinição de responsabilidades', perguntas:[
+'O trabalhador recebe ordens contraditórias?',
+'As responsabilidades são confusas ou mal definidas?',
+'As mudanças são comunicadas sem antecedência?',
+'Existe pouca participação dos trabalhadores nas decisões?']},
+{nome:'Relações Sociais e Liderança', risco:'baixo apoio social, falhas de liderança e falta de reconhecimento', perguntas:[
+'A chefia deixa de oferecer apoio quando necessário?',
+'Existe pouca cooperação entre colegas?',
+'O trabalho realizado não é reconhecido?',
+'As decisões são percebidas como injustas?']},
+{nome:'Saúde Mental e Recuperação', risco:'estresse, exaustão e dificuldade de recuperação', perguntas:[
+'O trabalhador sente cansaço emocional relacionado ao trabalho?',
+'O trabalho prejudica o descanso ou o sono?',
+'O trabalhador tem dificuldade para se desligar do trabalho?',
+'O trabalho interfere negativamente na vida familiar?']},
+{nome:'Violência e Assédio', risco:'assédio moral, assédio sexual, violência psicológica ou constrangimento', perguntas:[
+'Há humilhações, gritos, ameaças ou constrangimentos?',
+'Há brincadeiras ofensivas, discriminação ou isolamento?',
+'Há relatos de assédio moral, sexual ou violência?',
+'O trabalhador sente medo de retaliação ao relatar problemas?']}
+];
+
+function show(id){
+ ['telaAdminLogin','telaAdmin','telaAdminAntigo','telaPublico','telaObrigado'].forEach(x=>{
+  const el = document.getElementById(x);
+  if(el) el.classList.add('hidden');
+ });
+ document.getElementById(id).classList.remove('hidden');
+}
+
+function montarPerguntas(){
+ const div = document.getElementById('questions');
+ if(div) div.innerHTML = '';
+}
+
+function inicializar(){
+ montarPerguntas();
+ const params = new URLSearchParams(window.location.search);
+ const codigo = params.get('pesquisa');
+ const empresa = params.get('empresa');
+ if(codigo){
+  abrirQuestionarioPorLink(codigo, empresa);
+ } else {
+  show('telaAdminLogin');
+ }
+}
+
+function entrarAdmin(){
+ if(document.getElementById('senhaAdmin').value !== SENHA_ADMIN){ alert('Senha incorreta.'); return; }
+ show('telaAdmin');
+ atualizarAdmin();
+}
+
+function sairAdmin(){
+ document.getElementById('senhaAdmin').value = '';
+ show('telaAdminLogin');
+}
+
+function gerarCodigo(){
+ return 'MS' + Math.random().toString(36).substring(2,8).toUpperCase();
+}
+
+function carregarPesquisas(){
+ return JSON.parse(localStorage.getItem(STORAGE_PESQUISAS) || '[]');
+}
+
+function salvarPesquisas(lista){
+ localStorage.setItem(STORAGE_PESQUISAS, JSON.stringify(lista));
+}
+
+function carregarRespostas(){
+ return JSON.parse(localStorage.getItem(STORAGE_RESPOSTAS) || '[]');
+}
+
+function salvarRespostas(lista){
+ localStorage.setItem(STORAGE_RESPOSTAS, JSON.stringify(lista));
+}
+
+function normalizarEmpresa(nome){
+ return (nome || '-').trim() || '-';
+}
+
+function htmlSeguro(txt){
+ return String(txt ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function empresasDisponiveis(pesquisas, respostas){
+ const nomes = new Set();
+ pesquisas.forEach(p=>nomes.add(normalizarEmpresa(p.empresa)));
+ respostas.forEach(r=>nomes.add(normalizarEmpresa(r.empresa)));
+ return [...nomes].filter(x=>x && x !== '-').sort((a,b)=>a.localeCompare(b, 'pt-BR'));
+}
+
+function respostasDoEscopo(respostas){
+ return empresaSelecionada ? respostas.filter(r=>normalizarEmpresa(r.empresa) === empresaSelecionada) : respostas;
+}
+
+function pesquisasDoEscopo(pesquisas){
+ return empresaSelecionada ? pesquisas.filter(p=>normalizarEmpresa(p.empresa) === empresaSelecionada) : pesquisas;
+}
+
+function trocarEmpresa(){
+ const filtro = document.getElementById('filtroEmpresa');
+ empresaSelecionada = filtro ? filtro.value : '';
+ atualizarAdmin();
+ document.getElementById('relatorio').textContent = '';
+}
+
+function selecionarEmpresa(valor){
+ empresaSelecionada = decodeURIComponent(valor);
+ atualizarAdmin();
+ document.getElementById('relatorio').textContent = '';
+}
+
+function gerarLinkPesquisa(){
+ const pesquisa = {
+  codigo: gerarCodigo(),
+  criadaEm: new Date().toLocaleString('pt-BR'),
+  empresa: normalizarEmpresa(document.getElementById('campEmpresa').value),
+  setor: '-',
+  funcao: '-',
+  grupo: '-',
+  expira: '',
+  obs: ''
+ };
+ const lista = carregarPesquisas();
+ lista.push(pesquisa);
+ salvarPesquisas(lista);
+ empresaSelecionada = pesquisa.empresa === '-' ? '' : pesquisa.empresa;
+
+ const link = criarUrlPesquisa(pesquisa.codigo, pesquisa.empresa);
+ document.getElementById('linkGerado').value = link;
+ document.getElementById('areaLink').classList.remove('hidden');
+ atualizarAdmin();
+}
+
+function criarUrlPesquisa(codigo, empresa){
+ const base = window.location.origin + window.location.pathname;
+ const params = new URLSearchParams();
+ params.set('pesquisa', codigo);
+ if(empresa) params.set('empresa', empresa);
+ return base + '?' + params.toString();
+}
+
+function copiarLink(){
+ const input = document.getElementById('linkGerado');
+ input.select();
+ document.execCommand('copy');
+ alert('Link copiado.');
+}
+
+function mensagemPesquisa(){
+ const link = document.getElementById('linkGerado').value;
+ return `Olá! Acesse o link abaixo para responder à Avaliação de Riscos Psicossociais da MS Tech:\n\n${link}`;
+}
+
+function copiarMensagem(){
+ navigator.clipboard.writeText(mensagemPesquisa()).then(()=>alert('Mensagem copiada.'));
+}
+
+function enviarWhatsApp(){
+ const texto = encodeURIComponent(mensagemPesquisa());
+ window.open('https://wa.me/?text=' + texto, '_blank');
+}
+
+function abrirQuestionarioPorLink(codigo, empresaParam){
+ let pesquisa = carregarPesquisas().find(p=>p.codigo === codigo);
+ if(!pesquisa){
+  if(empresaParam){
+   pesquisa = {
+    codigo,
+    criadaEm: new Date().toLocaleString('pt-BR'),
+    empresa: empresaParam,
+    setor: '-',
+    funcao: '-',
+    grupo: '-',
+    expira: '',
+    obs: ''
+   };
+   const lista = carregarPesquisas();
+   lista.push(pesquisa);
+   salvarPesquisas(lista);
+  } else {
+   document.body.innerHTML = '<div class="container"><div class="card"><h2>Link inválido</h2><p>Esta pesquisa não foi encontrada neste navegador.</p></div></div>';
+   return;
+  }
+ }
+ pesquisaAtual = pesquisa;
+ show('telaPublico');
+ document.getElementById('dadosPesquisa').innerHTML =
+ `<strong>Empresa:</strong> ${pesquisa.empresa}`;
+ const div = document.getElementById('questions');
+ div.innerHTML = '';
+ dominios.forEach((d,di)=>{
+  let html=`<div class="dim"><div class="dim-title">${d.nome}</div>`;
+  d.perguntas.forEach((p,pi)=>{
+   const name = `q_${di}_${pi}`;
+   html+=`<div class="question"><span>${p}</span><div class="radio-group">`;
+   respostas.forEach(r=>{
+    html+=`<label class="radio-option"><input type="radio" name="${name}" data-dominio="${di}" data-pergunta="${pi}" value="${r.val}" ${r.val===50?'checked':''}>${r.txt}</label>`;
+   });
+   html+=`</div></div>`;
+  });
+  html+='</div>';
+  div.innerHTML+=html;
+ });
+}
+
+function salvarResposta(){
+ if(!pesquisaAtual){ alert('Pesquisa não identificada.'); return; }
+ const resposta = {
+  id: Date.now(),
+  pesquisaCodigo: pesquisaAtual.codigo,
+  data: new Date().toLocaleString('pt-BR'),
+  empresa: pesquisaAtual.empresa,
+  setor: pesquisaAtual.setor,
+  funcao: pesquisaAtual.funcao,
+  grupo: pesquisaAtual.grupo,
+  valores: []
+ };
+ dominios.forEach((d,di)=>{
+  let vals=d.perguntas.map((p,pi)=>{
+   const selecionado = document.querySelector(`input[type="radio"][data-dominio="${di}"][data-pergunta="${pi}"]:checked`);
+   return selecionado ? Number(selecionado.value) : 50;
+  });
+  resposta.valores.push(vals);
+ });
+ const lista = carregarRespostas();
+ lista.push(resposta);
+ salvarRespostas(lista);
+ show('telaObrigado');
+}
+
+function analisarResposta(resp){
+ const medias = dominios.map((d,di)=>{
+  const vals = resp.valores[di] || [];
+  const m = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+  return {dominio:d.nome, risco:d.risco, media:m};
+ });
+ return classificar(medias);
+}
+
+function analisarTodas(lista){
+ if(!lista.length) return classificar(dominios.map(d=>({dominio:d.nome, risco:d.risco, media:0})));
+ const medias = dominios.map((d,di)=>{
+  let todos = [];
+  lista.forEach(r => { todos = todos.concat(r.valores[di] || []); });
+  const m = todos.length ? todos.reduce((a,b)=>a+b,0)/todos.length : 0;
+  return {dominio:d.nome, risco:d.risco, media:m};
+ });
+ return classificar(medias);
+}
+
+function classificar(medias){
+ const mediaGeral = medias.reduce((a,b)=>a+b.media,0)/medias.length;
+ const criticos = medias.filter(x=>x.media>=70);
+ const relevantes = medias.filter(x=>x.media>=50);
+ const prob = probabilidade(mediaGeral);
+ const sev = severidade(mediaGeral, criticos);
+ const classe = matriz(prob.nivel, sev.nivel);
+ return {medias, mediaGeral, criticos, relevantes, prob, sev, classe};
+}
+
+function probabilidade(m){
+ if(m<=20) return {nivel:1, txt:'Muito baixa'};
+ if(m<=40) return {nivel:2, txt:'Baixa'};
+ if(m<=60) return {nivel:3, txt:'Média'};
+ if(m<=80) return {nivel:4, txt:'Alta'};
+ return {nivel:5, txt:'Muito alta'};
+}
+
+function severidade(m, criticos){
+ if(criticos.some(x=>x.dominio==='Violência e Assédio')) return {nivel:4, txt:'Muito grave'};
+ if(m>=76) return {nivel:4, txt:'Muito grave'};
+ if(m>=56) return {nivel:3, txt:'Grave'};
+ if(m>=31) return {nivel:2, txt:'Moderada'};
+ return {nivel:1, txt:'Leve'};
+}
+
+function matriz(p,s){
+ if(s===1) return p<=3?'Baixo':'Médio';
+ if(s===2) return p===1?'Baixo':p<=3?'Médio':'Alto';
+ if(s===3) return p<=2?'Médio':p<=4?'Alto':'Crítico';
+ if(s===4) return p<=2?'Alto':'Crítico';
+ return 'Crítico';
+}
+
+function atualizarAdmin(){
+ const respostas = carregarRespostas();
+ const pesquisas = carregarPesquisas();
+ const a = analisarTodas(respostas);
+
+ document.getElementById('kpiTotal').textContent = respostas.length;
+ document.getElementById('kpiProb').textContent = a.prob.txt;
+ document.getElementById('kpiSev').textContent = a.sev.txt;
+ document.getElementById('kpiRisco').innerHTML = `<span class="badge ${classeCss(a.classe)}">${a.classe}</span>`;
+
+ const empresas = [...new Set(respostas.map(x=>x.empresa).filter(Boolean))].join(', ') || 'empresa avaliada';
+ const riscos = a.criticos.length ? a.criticos.map(x=>x.risco).join('; ') : (a.relevantes.length ? a.relevantes.map(x=>x.risco).join('; ') : 'sem exposição psicossocial relevante identificada');
+
+ document.getElementById('exposicao').textContent = `Trabalhadores da(s) empresa(s) ${empresas}, expostos a ${riscos}.`;
+ document.getElementById('perigos').textContent = 'Perigos relacionados à organização do trabalho. Fontes e circunstâncias: demandas excessivas, pressão por produtividade, falhas de comunicação, baixa previsibilidade, relações interpessoais fragilizadas, baixo apoio da liderança, ausência de reconhecimento ou situações de assédio/violência, conforme respostas identificadas.';
+ document.getElementById('grupoAuto').textContent = empresas;
+ document.getElementById('agente').textContent = 'Fatores de risco psicossociais relacionados ao trabalho, decorrentes da concepção, organização, gestão e relações sociais no ambiente laboral.';
+ document.getElementById('danos').textContent = danos(a.classe);
+ document.getElementById('estimativa').textContent = estimativa(a.classe);
+ document.getElementById('info').textContent = info(a.classe, a.criticos);
+ document.getElementById('controle').textContent = controles(a.classe, a.criticos);
+
+ const tb = document.getElementById('tabelaDominios');
+ tb.innerHTML = '';
+ a.medias.forEach(x=>{
+  const sit = situacaoDominio(x.media);
+  tb.innerHTML += `<tr><td>${x.dominio}</td><td><span class="badge ${classeCss(sit)}">${sit}</span></td></tr>`;
+ });
+
+ const tr = document.getElementById('tabelaRespostas');
+ tr.innerHTML = '';
+ respostas.slice().reverse().forEach(r=>{
+  const ar = analisarResposta(r);
+  tr.innerHTML += `<tr><td>${r.data}</td><td>${r.pesquisaCodigo}</td><td>${r.empresa}</td><td><span class="badge ${classeCss(ar.classe)}">${ar.classe}</span></td></tr>`;
+ });
+
+ const tp = document.getElementById('tabelaPesquisas');
+ tp.innerHTML = '';
+ pesquisas.slice().reverse().forEach(p=>{
+  const qtd = respostas.filter(r=>r.pesquisaCodigo === p.codigo).length;
+  tp.innerHTML += `<tr><td>${p.codigo}</td><td>${p.empresa}</td><td>${qtd}</td><td><button onclick="selecionarLink('${p.codigo}')">Copiar</button></td></tr>`;
+ });
+}
+
+function atualizarAdmin(){
+ const respostas = carregarRespostas();
+ const pesquisas = carregarPesquisas();
+ const empresas = empresasDisponiveis(pesquisas, respostas);
+ if(empresaSelecionada && !empresas.includes(empresaSelecionada)) empresaSelecionada = '';
+
+ const respostasEscopo = respostasDoEscopo(respostas);
+ const pesquisasEscopo = pesquisasDoEscopo(pesquisas);
+ const analise = analisarTodas(respostasEscopo);
+ const escopo = empresaSelecionada || 'Todas as empresas';
+
+ const filtro = document.getElementById('filtroEmpresa');
+ if(filtro){
+  filtro.innerHTML = '<option value="">Todas as empresas</option>';
+  empresas.forEach(nome=>{
+   filtro.innerHTML += `<option value="${htmlSeguro(nome)}" ${nome===empresaSelecionada?'selected':''}>${htmlSeguro(nome)}</option>`;
+  });
+ }
+
+ document.getElementById('empresaAtivaPill').textContent = escopo;
+ document.getElementById('escopoResumo').textContent = escopo;
+ document.getElementById('totalEmpresas').textContent = `${empresas.length} cadastrada${empresas.length===1?'':'s'}`;
+ document.getElementById('kpiTotal').textContent = respostasEscopo.length;
+ document.getElementById('kpiProb').textContent = analise.prob.txt;
+ document.getElementById('kpiSev').textContent = analise.sev.txt;
+ document.getElementById('kpiRisco').innerHTML = `<span class="badge ${classeCss(analise.classe)}">${analise.classe}</span>`;
+
+ const empresasTexto = empresaSelecionada || ([...new Set(respostasEscopo.map(x=>normalizarEmpresa(x.empresa)).filter(Boolean))].join(', ') || 'empresa avaliada');
+ const riscos = analise.criticos.length ? analise.criticos.map(x=>x.risco).join('; ') : (analise.relevantes.length ? analise.relevantes.map(x=>x.risco).join('; ') : 'sem exposicao psicossocial relevante identificada');
+
+ document.getElementById('exposicao').textContent = `Trabalhadores da(s) empresa(s) ${empresasTexto}, expostos a ${riscos}.`;
+ document.getElementById('perigos').textContent = 'Perigos relacionados a organizacao do trabalho. Fontes e circunstancias: demandas excessivas, pressao por produtividade, falhas de comunicacao, baixa previsibilidade, relacoes interpessoais fragilizadas, baixo apoio da lideranca, ausencia de reconhecimento ou situacoes de assedio/violencia, conforme respostas identificadas.';
+ document.getElementById('grupoAuto').textContent = empresasTexto;
+ document.getElementById('agente').textContent = 'Fatores de risco psicossociais relacionados ao trabalho, decorrentes da concepcao, organizacao, gestao e relacoes sociais no ambiente laboral.';
+ document.getElementById('danos').textContent = danos(analise.classe);
+ document.getElementById('estimativa').textContent = estimativa(analise.classe);
+ document.getElementById('info').textContent = info(analise.classe, analise.criticos);
+ document.getElementById('controle').textContent = controles(analise.classe, analise.criticos);
+
+ const tb = document.getElementById('tabelaDominios');
+ tb.innerHTML = '';
+ analise.medias.forEach(x=>{
+  const sit = situacaoDominio(x.media);
+  tb.innerHTML += `<tr><td>${htmlSeguro(x.dominio)}</td><td><span class="badge ${classeCss(sit)}">${sit}</span></td></tr>`;
+ });
+
+ const te = document.getElementById('tabelaEmpresas');
+ te.innerHTML = '';
+ if(!empresas.length){
+  te.innerHTML = '<tr><td colspan="4">Nenhuma empresa cadastrada.</td></tr>';
+ }
+ empresas.forEach(nome=>{
+  const respEmpresa = respostas.filter(r=>normalizarEmpresa(r.empresa) === nome);
+  const pesqEmpresa = pesquisas.filter(p=>normalizarEmpresa(p.empresa) === nome);
+  const riscoEmpresa = analisarTodas(respEmpresa).classe;
+  te.innerHTML += `<tr><td><button class="secondary" onclick="selecionarEmpresa('${encodeURIComponent(nome)}')">${htmlSeguro(nome)}</button></td><td>${pesqEmpresa.length}</td><td>${respEmpresa.length}</td><td><span class="badge ${classeCss(riscoEmpresa)}">${riscoEmpresa}</span></td></tr>`;
+ });
+
+ const tr = document.getElementById('tabelaRespostas');
+ tr.innerHTML = '';
+ if(!respostasEscopo.length){
+  tr.innerHTML = '<tr><td colspan="4">Nenhuma resposta registrada neste escopo.</td></tr>';
+ }
+ respostasEscopo.slice().reverse().forEach(r=>{
+  const ar = analisarResposta(r);
+  tr.innerHTML += `<tr><td>${htmlSeguro(r.data)}</td><td>${htmlSeguro(r.pesquisaCodigo)}</td><td>${htmlSeguro(r.empresa)}</td><td><span class="badge ${classeCss(ar.classe)}">${ar.classe}</span></td></tr>`;
+ });
+
+ const tp = document.getElementById('tabelaPesquisas');
+ tp.innerHTML = '';
+ if(!pesquisasEscopo.length){
+  tp.innerHTML = '<tr><td colspan="4">Nenhuma pesquisa cadastrada neste escopo.</td></tr>';
+ }
+ pesquisasEscopo.slice().reverse().forEach(p=>{
+  const qtd = respostas.filter(r=>r.pesquisaCodigo === p.codigo).length;
+  tp.innerHTML += `<tr><td>${htmlSeguro(p.codigo)}</td><td>${htmlSeguro(p.empresa)}</td><td>${qtd}</td><td><button onclick="selecionarLink('${p.codigo}')">Copiar</button></td></tr>`;
+ });
+}
+
+function selecionarLink(codigo){
+ const pesquisa = carregarPesquisas().find(p=>p.codigo === codigo);
+ const link = criarUrlPesquisa(codigo, pesquisa ? pesquisa.empresa : '');
+ document.getElementById('linkGerado').value = link;
+ document.getElementById('areaLink').classList.remove('hidden');
+ copiarLink();
+}
+
+function situacaoDominio(m){
+ if(m>=75) return 'Crítico';
+ if(m>=60) return 'Alto';
+ if(m>=40) return 'Médio';
+ return 'Baixo';
+}
+
+function classeCss(c){
+ return c==='Baixo'?'baixo':c==='Médio'?'medio':c==='Alto'?'alto':'critico';
+}
+
+function estimativa(c){
+ if(c==='Crítico') return 'Requer intervenção imediata.';
+ if(c==='Alto') return 'Requer plano de ação prioritário.';
+ if(c==='Médio') return 'Requer controle e acompanhamento.';
+ return 'Aceitável com monitoramento preventivo.';
+}
+
+function danos(c){
+ if(c==='Crítico') return 'Possibilidade de adoecimento mental grave, esgotamento, ansiedade, depressão, afastamentos, conflitos, violência, agravamento de transtornos e outros danos relevantes à saúde.';
+ if(c==='Alto') return 'Estresse ocupacional, fadiga, ansiedade, distúrbios do sono, queda de desempenho, absenteísmo, presenteísmo e possível agravamento de adoecimentos.';
+ if(c==='Médio') return 'Tensão, irritabilidade, cansaço, queda de concentração, redução da satisfação e possibilidade de evolução para agravos se não houver controle.';
+ return 'Desconforto eventual ou exposição baixa, com necessidade de monitoramento preventivo.';
+}
+
+function info(c, criticos){
+ let arr=['entrevistas individuais ou coletivas','consulta à CIPA/representantes dos trabalhadores','análise de absenteísmo e rotatividade','verificação de afastamentos e dados do PCMSO'];
+ if(c==='Alto'||c==='Crítico') arr.push('Avaliação Ergonômica Preliminar ou Análise Ergonômica do Trabalho','investigação formal de assédio ou violência quando aplicável');
+ if(criticos.length) arr.push('aprofundamento dos domínios críticos: '+criticos.map(x=>x.dominio).join(', '));
+ return arr.join('; ')+'.';
+}
+
+function controles(c, criticos){
+ let arr=['revisar metas, prazos e distribuição de tarefas','melhorar comunicação interna','treinar lideranças','fortalecer apoio da chefia e dos colegas','criar ou divulgar canal de escuta/denúncia','acompanhar indicadores de saúde, absenteísmo e rotatividade'];
+ if(criticos.some(x=>x.dominio==='Demandas do Trabalho')) arr.push('redimensionar equipe e implantar pausas');
+ if(criticos.some(x=>x.dominio==='Organização do Trabalho')) arr.push('definir responsabilidades e ampliar participação dos trabalhadores');
+ if(criticos.some(x=>x.dominio==='Relações Sociais e Liderança')) arr.push('implantar ações de reconhecimento, justiça organizacional e feedback');
+ if(criticos.some(x=>x.dominio==='Saúde Mental e Recuperação')) arr.push('avaliar jornada, descanso, desconexão e suporte psicossocial');
+ if(criticos.some(x=>x.dominio==='Violência e Assédio')) arr.push('implantar protocolo de prevenção, acolhimento, apuração e correção de assédio/violência');
+ return arr.join('; ')+'.';
+}
+
+function gerarRelatorio(){
+ const respostas = carregarRespostas();
+ const a = analisarTodas(respostas);
+ document.getElementById('relatorio').textContent =
+`RELATÓRIO DE INVESTIGAÇÃO DE RISCOS PSICOSSOCIAIS - MS TECH
+
+Total de respostas: ${respostas.length}
+
+Exposição:
+${document.getElementById('exposicao').textContent}
+
+Perigos, fontes e circunstâncias:
+${document.getElementById('perigos').textContent}
+
+Metodologia utilizada:
+COPSOQ II - Copenhagen Psychosocial Questionnaire, com análise por domínios psicossociais e classificação automática pela matriz Probabilidade × Severidade.
+
+Grupo/Setor de referência:
+${document.getElementById('grupoAuto').textContent}
+
+Descrição do Agente Nocivo:
+${document.getElementById('agente').textContent}
+
+Possíveis danos à saúde:
+${document.getElementById('danos').textContent}
+
+Probabilidade:
+${a.prob.txt}
+
+Severidade:
+${a.sev.txt}
+
+Nível do Risco:
+${a.classe}
+
+Estimativa:
+${document.getElementById('estimativa').textContent}
+
+Informação adicional necessária:
+${document.getElementById('info').textContent}
+
+Controle adicional se possível e viável:
+${document.getElementById('controle').textContent}`;
+}
+
+function limparDados(){
+ if(confirm('Deseja apagar todas as respostas e pesquisas salvas neste navegador?')){
+  localStorage.removeItem(STORAGE_RESPOSTAS);
+  localStorage.removeItem(STORAGE_PESQUISAS);
+  atualizarAdmin();
+  document.getElementById('relatorio').textContent = '';
+ }
+}
+
+function exportarCSV(){
+ const lista = carregarRespostas();
+ if(!lista.length){ alert('Não há respostas para exportar.'); return; }
+ let csv = 'Data;Pesquisa;Empresa;Classificacao\n';
+ lista.forEach(r=>{
+  const a = analisarResposta(r);
+  csv += `${r.data};${r.pesquisaCodigo};${r.empresa};${a.classe}\n`;
+ });
+ const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = 'respostas_ms_tech_riscos_psicossociais.csv';
+ a.click();
+ URL.revokeObjectURL(url);
+}
+
+function exportarExcel(){
+ const lista = carregarRespostas();
+ if(!lista.length){ alert('Não há respostas para exportar.'); return; }
+ const headers = ['Data','Pesquisa','Empresa','Classificacao'];
+ const rows = lista.map(r => {
+  const a = analisarResposta(r);
+  return [r.data, r.pesquisaCodigo, r.empresa, a.classe];
+ });
+ const xmlHeader = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+  `<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ` +
+  `xmlns:o="urn:schemas-microsoft-com:office:office" ` +
+  `xmlns:x="urn:schemas-microsoft-com:office:excel" ` +
+  `xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n` +
+  `<Worksheet ss:Name="Respostas">\n<Table>\n`;
+ const xmlFooter = `</Table>\n</Worksheet>\n</Workbook>`;
+ const xmlRows = [headers, ...rows].map(row => {
+  return '<Row>' + row.map(cell => `<Cell><Data ss:Type="String">${String(cell).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</Data></Cell>`).join('') + '</Row>';
+ }).join('\n');
+ const blob = new Blob([xmlHeader + xmlRows + '\n' + xmlFooter], {type:'application/vnd.ms-excel'});
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = 'respostas_ms_tech_riscos_psicossociais.xls';
+ a.click();
+ URL.revokeObjectURL(url);
+}
+
+function gerarRelatorio(){
+ const respostas = respostasDoEscopo(carregarRespostas());
+ const analise = analisarTodas(respostas);
+ const escopo = empresaSelecionada || 'Todas as empresas';
+ document.getElementById('relatorio').textContent =
+`RELATORIO DE INVESTIGACAO DE RISCOS PSICOSSOCIAIS - MS TECH
+
+Empresa/Escopo:
+${escopo}
+
+Total de respostas:
+${respostas.length}
+
+Exposicao:
+${document.getElementById('exposicao').textContent}
+
+Perigos, fontes e circunstancias:
+${document.getElementById('perigos').textContent}
+
+Metodologia utilizada:
+COPSOQ II - Copenhagen Psychosocial Questionnaire, com analise por dominios psicossociais e classificacao automatica pela matriz Probabilidade x Severidade.
+
+Grupo/Setor de referencia:
+${document.getElementById('grupoAuto').textContent}
+
+Descricao do Agente Nocivo:
+${document.getElementById('agente').textContent}
+
+Possiveis danos a saude:
+${document.getElementById('danos').textContent}
+
+Probabilidade:
+${analise.prob.txt}
+
+Severidade:
+${analise.sev.txt}
+
+Nivel do Risco:
+${analise.classe}
+
+Estimativa:
+${document.getElementById('estimativa').textContent}
+
+Informacao adicional necessaria:
+${document.getElementById('info').textContent}
+
+Controle adicional se possivel e viavel:
+${document.getElementById('controle').textContent}`;
+}
+
+function limparDados(){
+ if(confirm('Deseja apagar todas as respostas e pesquisas salvas neste navegador?')){
+  empresaSelecionada = '';
+  localStorage.removeItem(STORAGE_RESPOSTAS);
+  localStorage.removeItem(STORAGE_PESQUISAS);
+  atualizarAdmin();
+  document.getElementById('relatorio').textContent = '';
+ }
+}
+
+function nomeArquivoEscopo(ext){
+ const base = empresaSelecionada ? empresaSelecionada.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'') : 'todas_empresas';
+ return `respostas_ms_tech_${base}.${ext}`;
+}
+
+function exportarCSV(){
+ const lista = respostasDoEscopo(carregarRespostas());
+ if(!lista.length){ alert('Nao ha respostas para exportar neste escopo.'); return; }
+ let csv = 'Data;Pesquisa;Empresa;Classificacao\n';
+ lista.forEach(r=>{
+  const analise = analisarResposta(r);
+  csv += `${r.data};${r.pesquisaCodigo};${r.empresa};${analise.classe}\n`;
+ });
+ const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = nomeArquivoEscopo('csv');
+ a.click();
+ URL.revokeObjectURL(url);
+}
+
+function exportarExcel(){
+ const lista = respostasDoEscopo(carregarRespostas());
+ if(!lista.length){ alert('Nao ha respostas para exportar neste escopo.'); return; }
+ const headers = ['Data','Pesquisa','Empresa','Classificacao'];
+ const rows = lista.map(r => {
+  const analise = analisarResposta(r);
+  return [r.data, r.pesquisaCodigo, r.empresa, analise.classe];
+ });
+ const xmlHeader = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+  `<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ` +
+  `xmlns:o="urn:schemas-microsoft-com:office:office" ` +
+  `xmlns:x="urn:schemas-microsoft-com:office:excel" ` +
+  `xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n` +
+  `<Worksheet ss:Name="Respostas">\n<Table>\n`;
+ const xmlFooter = `</Table>\n</Worksheet>\n</Workbook>`;
+ const xmlRows = [headers, ...rows].map(row => {
+  return '<Row>' + row.map(cell => `<Cell><Data ss:Type="String">${String(cell).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</Data></Cell>`).join('') + '</Row>';
+ }).join('\n');
+ const blob = new Blob([xmlHeader + xmlRows + '\n' + xmlFooter], {type:'application/vnd.ms-excel'});
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = nomeArquivoEscopo('xls');
+ a.click();
+ URL.revokeObjectURL(url);
+}
+
+inicializar();
+</script>
+</body>
+</html>
