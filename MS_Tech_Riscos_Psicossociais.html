@@ -30,7 +30,7 @@ button:hover{opacity:.92}
 .admin-title h2{margin-bottom:6px}
 .admin-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .admin-actions button{margin-top:0}
-.selector-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+.selector-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
 .section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
 .section-title h2{margin:0}
 .muted{color:#64748b;font-size:13px}
@@ -125,6 +125,10 @@ th{background:#f1f5f9}
 <option value="4">Grau 4</option>
 </select>
 </div>
+<div>
+<label>Funcao</label>
+<input id="campFuncao" placeholder="Cargo ou funcao avaliada">
+</div>
 </div>
 <button class="success" onclick="gerarLinkPesquisa()">Gerar link do questionario</button>
 
@@ -154,9 +158,15 @@ th{background:#f1f5f9}
 <option value="">Todas as empresas</option>
 </select>
 </div>
+<div>
+<label>Gerenciar funcao</label>
+<select id="filtroFuncao" onchange="trocarFuncao()">
+<option value="">Todas as funcoes</option>
+</select>
+</div>
 <button onclick="gerarRelatorio()">Gerar relatorio</button>
 </div>
-<p class="small">Indicadores, respostas, exportacoes e relatorio acompanham a empresa selecionada.</p>
+<p class="small">Indicadores, respostas, exportacoes e relatorio acompanham a empresa e a funcao selecionadas.</p>
 </div>
 </div>
 
@@ -191,7 +201,7 @@ th{background:#f1f5f9}
 <span class="muted">Links por empresa</span>
 </div>
 <table>
-<thead><tr><th>Codigo</th><th>Empregador</th><th>CNPJ</th><th>CNAE</th><th>Grau</th><th>Respostas</th><th>Link</th></tr></thead>
+<thead><tr><th>Codigo</th><th>Empregador</th><th>Funcao</th><th>CNPJ</th><th>CNAE</th><th>Grau</th><th>Respostas</th><th>Link</th></tr></thead>
 <tbody id="tabelaPesquisas"></tbody>
 </table>
 </div>
@@ -233,7 +243,7 @@ th{background:#f1f5f9}
 <h2>Respostas registradas</h2>
 <table>
 <thead>
-<tr><th>Data</th><th>Pesquisa</th><th>Empresa</th><th>Classificacao</th></tr>
+<tr><th>Data</th><th>Pesquisa</th><th>Empresa</th><th>Funcao</th><th>Classificacao</th></tr>
 </thead>
 <tbody id="tabelaRespostas"></tbody>
 </table>
@@ -334,7 +344,7 @@ th{background:#f1f5f9}
 <h2>Respostas registradas</h2>
 <table>
 <thead>
-<tr><th>Data</th><th>Pesquisa</th><th>Empresa</th><th>Classificação</th></tr>
+<tr><th>Data</th><th>Pesquisa</th><th>Empresa</th><th>Funcao</th><th>Classificação</th></tr>
 </thead>
 <tbody id="tabelaRespostas"></tbody>
 </table>
@@ -376,6 +386,7 @@ const STORAGE_RESPOSTAS = 'mstech_copsoq_respostas_v3';
 const STORAGE_PESQUISAS = 'mstech_copsoq_pesquisas_v3';
 let pesquisaAtual = null;
 let empresaSelecionada = '';
+let funcaoSelecionada = '';
 
 const respostas = [
 {txt:'Nunca', val:0},
@@ -434,8 +445,9 @@ function inicializar(){
  const cnpj = params.get('cnpj');
  const cnae = params.get('cnae');
  const grauRisco = params.get('grauRisco');
+ const funcao = params.get('funcao');
  if(codigo){
-  abrirQuestionarioPorLink(codigo, empresa, {cnpj, cnae, grauRisco});
+  abrirQuestionarioPorLink(codigo, empresa, {cnpj, cnae, grauRisco, funcao});
  } else {
   show('telaAdminLogin');
  }
@@ -476,6 +488,10 @@ function normalizarEmpresa(nome){
  return (nome || '-').trim() || '-';
 }
 
+function normalizarFuncao(nome){
+ return (nome || '-').trim() || '-';
+}
+
 function htmlSeguro(txt){
  return String(txt ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -489,7 +505,8 @@ function dadosEmpresa(pesquisa){
   empregador: normalizarEmpresa(pesquisa?.empregador || pesquisa?.empresa),
   cnpj: normalizarTexto(pesquisa?.cnpj),
   cnae: normalizarTexto(pesquisa?.cnae),
-  grauRisco: normalizarTexto(pesquisa?.grauRisco)
+  grauRisco: normalizarTexto(pesquisa?.grauRisco),
+  funcao: normalizarFuncao(pesquisa?.funcao)
  };
 }
 
@@ -508,23 +525,51 @@ function empresasDisponiveis(pesquisas, respostas){
  return [...nomes].filter(x=>x && x !== '-').sort((a,b)=>a.localeCompare(b, 'pt-BR'));
 }
 
+function funcoesDisponiveis(pesquisas, respostas){
+ const nomes = new Set();
+ pesquisas
+  .filter(p=>!empresaSelecionada || normalizarEmpresa(p.empresa) === empresaSelecionada)
+  .forEach(p=>nomes.add(normalizarFuncao(p.funcao)));
+ respostas
+  .filter(r=>!empresaSelecionada || normalizarEmpresa(r.empresa) === empresaSelecionada)
+  .forEach(r=>nomes.add(normalizarFuncao(r.funcao)));
+ return [...nomes].filter(x=>x && x !== '-').sort((a,b)=>a.localeCompare(b, 'pt-BR'));
+}
+
 function respostasDoEscopo(respostas){
- return empresaSelecionada ? respostas.filter(r=>normalizarEmpresa(r.empresa) === empresaSelecionada) : respostas;
+ return respostas.filter(r=>{
+  const empresaOk = !empresaSelecionada || normalizarEmpresa(r.empresa) === empresaSelecionada;
+  const funcaoOk = !funcaoSelecionada || normalizarFuncao(r.funcao) === funcaoSelecionada;
+  return empresaOk && funcaoOk;
+ });
 }
 
 function pesquisasDoEscopo(pesquisas){
- return empresaSelecionada ? pesquisas.filter(p=>normalizarEmpresa(p.empresa) === empresaSelecionada) : pesquisas;
+ return pesquisas.filter(p=>{
+  const empresaOk = !empresaSelecionada || normalizarEmpresa(p.empresa) === empresaSelecionada;
+  const funcaoOk = !funcaoSelecionada || normalizarFuncao(p.funcao) === funcaoSelecionada;
+  return empresaOk && funcaoOk;
+ });
 }
 
 function trocarEmpresa(){
  const filtro = document.getElementById('filtroEmpresa');
  empresaSelecionada = filtro ? filtro.value : '';
+ funcaoSelecionada = '';
+ atualizarAdmin();
+ document.getElementById('relatorio').textContent = '';
+}
+
+function trocarFuncao(){
+ const filtro = document.getElementById('filtroFuncao');
+ funcaoSelecionada = filtro ? filtro.value : '';
  atualizarAdmin();
  document.getElementById('relatorio').textContent = '';
 }
 
 function selecionarEmpresa(valor){
  empresaSelecionada = decodeURIComponent(valor);
+ funcaoSelecionada = '';
  atualizarAdmin();
  document.getElementById('relatorio').textContent = '';
 }
@@ -539,8 +584,8 @@ function gerarLinkPesquisa(){
   cnpj: normalizarTexto(document.getElementById('campCnpj').value),
   cnae: normalizarTexto(document.getElementById('campCnae').value),
   grauRisco: normalizarTexto(document.getElementById('campGrauRisco').value),
+  funcao: normalizarFuncao(document.getElementById('campFuncao').value),
   setor: '-',
-  funcao: '-',
   grupo: '-',
   expira: '',
   obs: ''
@@ -549,6 +594,7 @@ function gerarLinkPesquisa(){
  lista.push(pesquisa);
  salvarPesquisas(lista);
  empresaSelecionada = pesquisa.empresa === '-' ? '' : pesquisa.empresa;
+ funcaoSelecionada = pesquisa.funcao === '-' ? '' : pesquisa.funcao;
 
  const link = criarUrlPesquisa(pesquisa.codigo, pesquisa.empresa, pesquisa);
  document.getElementById('linkGerado').value = link;
@@ -564,6 +610,7 @@ function criarUrlPesquisa(codigo, empresa, dados={}){
  if(dados.cnpj) params.set('cnpj', dados.cnpj);
  if(dados.cnae) params.set('cnae', dados.cnae);
  if(dados.grauRisco) params.set('grauRisco', dados.grauRisco);
+ if(dados.funcao && dados.funcao !== '-') params.set('funcao', dados.funcao);
  return base + '?' + params.toString();
 }
 
@@ -601,8 +648,8 @@ function abrirQuestionarioPorLink(codigo, empresaParam, dadosParam={}){
     cnpj: normalizarTexto(dadosParam.cnpj),
     cnae: normalizarTexto(dadosParam.cnae),
     grauRisco: normalizarTexto(dadosParam.grauRisco),
+    funcao: normalizarFuncao(dadosParam.funcao),
     setor: '-',
-    funcao: '-',
     grupo: '-',
     expira: '',
     obs: ''
@@ -619,6 +666,7 @@ function abrirQuestionarioPorLink(codigo, empresaParam, dadosParam={}){
   pesquisa.cnpj = pesquisa.cnpj || normalizarTexto(dadosParam.cnpj);
   pesquisa.cnae = pesquisa.cnae || normalizarTexto(dadosParam.cnae);
   pesquisa.grauRisco = pesquisa.grauRisco || normalizarTexto(dadosParam.grauRisco);
+  pesquisa.funcao = pesquisa.funcao || normalizarFuncao(dadosParam.funcao);
  }
  pesquisaAtual = pesquisa;
  show('telaPublico');
@@ -626,7 +674,8 @@ function abrirQuestionarioPorLink(codigo, empresaParam, dadosParam={}){
  `<strong>Empregador:</strong> ${htmlSeguro(pesquisa.empresa)}<br>
  <strong>CNPJ:</strong> ${htmlSeguro(pesquisa.cnpj || '-')}<br>
  <strong>CNAE:</strong> ${htmlSeguro(pesquisa.cnae || '-')}<br>
- <strong>Grau de risco:</strong> ${htmlSeguro(textoGrauRisco(pesquisa.grauRisco))}`;
+ <strong>Grau de risco:</strong> ${htmlSeguro(textoGrauRisco(pesquisa.grauRisco))}<br>
+ <strong>Funcao:</strong> ${htmlSeguro(pesquisa.funcao || '-')}`;
  const div = document.getElementById('questions');
  div.innerHTML = '';
  dominios.forEach((d,di)=>{
@@ -655,8 +704,8 @@ function salvarResposta(){
   cnpj: pesquisaAtual.cnpj || '',
   cnae: pesquisaAtual.cnae || '',
   grauRisco: pesquisaAtual.grauRisco || '',
+  funcao: pesquisaAtual.funcao || '-',
   setor: pesquisaAtual.setor,
-  funcao: pesquisaAtual.funcao,
   grupo: pesquisaAtual.grupo,
   valores: []
  };
@@ -776,17 +825,29 @@ function atualizarAdmin(){
  const pesquisas = carregarPesquisas();
  const empresas = empresasDisponiveis(pesquisas, respostas);
  if(empresaSelecionada && !empresas.includes(empresaSelecionada)) empresaSelecionada = '';
+ const funcoes = funcoesDisponiveis(pesquisas, respostas);
+ if(funcaoSelecionada && !funcoes.includes(funcaoSelecionada)) funcaoSelecionada = '';
 
  const respostasEscopo = respostasDoEscopo(respostas);
  const pesquisasEscopo = pesquisasDoEscopo(pesquisas);
  const analise = analisarTodas(respostasEscopo);
- const escopo = empresaSelecionada || 'Todas as empresas';
+ const escopoEmpresa = empresaSelecionada || 'Todas as empresas';
+ const escopoFuncao = funcaoSelecionada || 'Todas as funcoes';
+ const escopo = `${escopoEmpresa} / ${escopoFuncao}`;
 
  const filtro = document.getElementById('filtroEmpresa');
  if(filtro){
   filtro.innerHTML = '<option value="">Todas as empresas</option>';
   empresas.forEach(nome=>{
    filtro.innerHTML += `<option value="${htmlSeguro(nome)}" ${nome===empresaSelecionada?'selected':''}>${htmlSeguro(nome)}</option>`;
+  });
+ }
+
+ const filtroFuncao = document.getElementById('filtroFuncao');
+ if(filtroFuncao){
+  filtroFuncao.innerHTML = '<option value="">Todas as funcoes</option>';
+  funcoes.forEach(nome=>{
+   filtroFuncao.innerHTML += `<option value="${htmlSeguro(nome)}" ${nome===funcaoSelecionada?'selected':''}>${htmlSeguro(nome)}</option>`;
   });
  }
 
@@ -833,22 +894,22 @@ function atualizarAdmin(){
  const tr = document.getElementById('tabelaRespostas');
  tr.innerHTML = '';
  if(!respostasEscopo.length){
-  tr.innerHTML = '<tr><td colspan="4">Nenhuma resposta registrada neste escopo.</td></tr>';
+  tr.innerHTML = '<tr><td colspan="5">Nenhuma resposta registrada neste escopo.</td></tr>';
  }
  respostasEscopo.slice().reverse().forEach(r=>{
   const ar = analisarResposta(r);
-  tr.innerHTML += `<tr><td>${htmlSeguro(r.data)}</td><td>${htmlSeguro(r.pesquisaCodigo)}</td><td>${htmlSeguro(r.empresa)}</td><td><span class="badge ${classeCss(ar.classe)}">${ar.classe}</span></td></tr>`;
+  tr.innerHTML += `<tr><td>${htmlSeguro(r.data)}</td><td>${htmlSeguro(r.pesquisaCodigo)}</td><td>${htmlSeguro(r.empresa)}</td><td>${htmlSeguro(r.funcao || '-')}</td><td><span class="badge ${classeCss(ar.classe)}">${ar.classe}</span></td></tr>`;
  });
 
  const tp = document.getElementById('tabelaPesquisas');
  tp.innerHTML = '';
  if(!pesquisasEscopo.length){
-  tp.innerHTML = '<tr><td colspan="7">Nenhuma pesquisa cadastrada neste escopo.</td></tr>';
+  tp.innerHTML = '<tr><td colspan="8">Nenhuma pesquisa cadastrada neste escopo.</td></tr>';
  }
  pesquisasEscopo.slice().reverse().forEach(p=>{
   const dados = dadosEmpresa(p);
   const qtd = respostas.filter(r=>r.pesquisaCodigo === p.codigo).length;
-  tp.innerHTML += `<tr><td>${htmlSeguro(p.codigo)}</td><td>${htmlSeguro(p.empresa)}</td><td>${htmlSeguro(dados.cnpj || '-')}</td><td>${htmlSeguro(dados.cnae || '-')}</td><td>${htmlSeguro(textoGrauRisco(dados.grauRisco))}</td><td>${qtd}</td><td><button onclick="selecionarLink('${p.codigo}')">Copiar</button></td></tr>`;
+  tp.innerHTML += `<tr><td>${htmlSeguro(p.codigo)}</td><td>${htmlSeguro(p.empresa)}</td><td>${htmlSeguro(dados.funcao || '-')}</td><td>${htmlSeguro(dados.cnpj || '-')}</td><td>${htmlSeguro(dados.cnae || '-')}</td><td>${htmlSeguro(textoGrauRisco(dados.grauRisco))}</td><td>${qtd}</td><td><button onclick="selecionarLink('${p.codigo}')">Copiar</button></td></tr>`;
  });
 }
 
@@ -1000,73 +1061,144 @@ function exportarExcel(){
  URL.revokeObjectURL(url);
 }
 
-function gerarRelatorio(){
- const respostas = respostasDoEscopo(carregarRespostas());
- const analise = analisarTodas(respostas);
- const escopo = empresaSelecionada || 'Todas as empresas';
- const pesquisas = carregarPesquisas();
- const dados = empresaSelecionada ? dadosEmpresa(pesquisaPorEmpresa(pesquisas, empresaSelecionada)) : {};
- document.getElementById('relatorio').textContent =
-`RELATORIO DE INVESTIGACAO DE RISCOS PSICOSSOCIAIS - MS TECH
+function descricaoSinteseFuncao(analise){
+ const criticos = analise.criticos.map(x=>x.dominio).join(', ');
+ const relevantes = analise.relevantes.map(x=>x.dominio).join(', ');
+ if(criticos) return `Maior atencao nos dominios: ${criticos}.`;
+ if(relevantes) return `Fatores em acompanhamento: ${relevantes}.`;
+ return 'Perfil favoravel, sem exposicao psicossocial relevante identificada no levantamento coletivo.';
+}
 
-Empresa/Escopo:
-${escopo}
+function perigosPorFuncao(analise){
+ const riscos = analise.criticos.length ? analise.criticos : analise.relevantes;
+ if(riscos.length) return riscos.map(x=>x.risco).join('; ') + '.';
+ return 'Fatores psicossociais relacionados a organizacao do trabalho, monitorados de forma preventiva.';
+}
 
-Empregador:
-${empresaSelecionada || 'Todas as empresas'}
+function funcoesDoRelatorio(pesquisas, respostas){
+ const nomes = new Set();
+ pesquisasDoEscopo(pesquisas).forEach(p=>nomes.add(normalizarFuncao(p.funcao)));
+ respostasDoEscopo(respostas).forEach(r=>nomes.add(normalizarFuncao(r.funcao)));
+ const lista = [...nomes].filter(x=>x && x !== '-').sort((a,b)=>a.localeCompare(b, 'pt-BR'));
+ return lista.length ? lista : ['Funcao nao informada'];
+}
 
-CNPJ:
-${dados.cnpj || '-'}
+function fichaRelatorioFuncao(nomeFuncao, respostasFuncao, dados){
+ const analise = analisarTodas(respostasFuncao);
+ const funcaoTexto = nomeFuncao || 'Funcao nao informada';
+ return `CARGO ${funcaoTexto.toUpperCase()}
+INVENTARIO DE RISCOS PSICOSSOCIAIS - ${funcaoTexto.toUpperCase()}
 
-CNAE:
-${dados.cnae || '-'}
+Fatores psicossociais relacionados a organizacao do trabalho
 
-Grau de risco:
-${textoGrauRisco(dados.grauRisco)}
-
-Total de respostas:
-${respostas.length}
-
-Exposicao:
-${document.getElementById('exposicao').textContent}
+Exposicao: Habitual
 
 Perigos, fontes e circunstancias:
-${document.getElementById('perigos').textContent}
+${perigosPorFuncao(analise)}
 
-Metodologia utilizada:
-COPSOQ II - Copenhagen Psychosocial Questionnaire, com analise por dominios psicossociais e classificacao automatica pela matriz Probabilidade x Severidade.
+Metodologia:
+Criterio qualitativo, complementado por avaliacao coletiva mediante questionario COPSOQ II, aplicado por funcao/cargo e integrado ao GRO/PGR.
 
-Grupo/Setor de referencia:
-${document.getElementById('grupoAuto').textContent}
+Funcao de referencia:
+${funcaoTexto} - ${descricaoSinteseFuncao(analise)}
+
+Medidas administrativas ou de organizacao do trabalho:
+${controles(analise.classe, analise.criticos)}
 
 Descricao do Agente Nocivo:
-${document.getElementById('agente').textContent}
+Fatores de risco psicossociais relacionados ao trabalho, decorrentes da concepcao, organizacao, gestao e relacoes sociais no ambiente laboral.
 
 Possiveis danos a saude:
-${document.getElementById('danos').textContent}
+${danos(analise.classe)}
 
 Probabilidade:
-${analise.prob.txt}
+${analise.prob.txt} (${analise.prob.nivel})
 
 Severidade:
-${analise.sev.txt}
+${analise.sev.txt} (${analise.sev.nivel})
 
 Nivel do Risco:
 ${analise.classe}
 
 Estimativa:
-${document.getElementById('estimativa').textContent}
+${estimativa(analise.classe)}
 
 Informacao adicional necessaria:
-${document.getElementById('info').textContent}
+${info(analise.classe, analise.criticos)}
 
-Controle adicional se possivel e viavel:
-${document.getElementById('controle').textContent}`;
+Controle adicional se for possivel e viavel:
+${controles(analise.classe, analise.criticos)}
+
+Observacoes:
+Avaliacao coletiva e ocupacional, de natureza preventiva, nao constituindo diagnostico clinico individual. Os resultados do questionario tem carater direcional e devem ser confirmados por entrevistas, observacoes de campo e indicadores internos de SST/RH. Os fatores foram tratados como perigos de natureza organizacional, conforme NR-1 (GRO/PGR) e ISO 45003:2021.
+
+Respondentes da funcao: ${respostasFuncao.length}
+Empregador: ${dados.empregador}
+CNPJ/CNAE/Grau de risco: ${dados.cnpj || '-'} / ${dados.cnae || '-'} / ${textoGrauRisco(dados.grauRisco)}`;
+}
+
+function gerarRelatorio(){
+ const todasRespostas = carregarRespostas();
+ const pesquisas = carregarPesquisas();
+ const respostas = respostasDoEscopo(todasRespostas);
+ const analiseGeral = analisarTodas(respostas);
+ const dados = empresaSelecionada ? dadosEmpresa(pesquisaPorEmpresa(pesquisas, empresaSelecionada)) : {empregador:'Todas as empresas', cnpj:'-', cnae:'-', grauRisco:''};
+ const funcoes = funcoesDoRelatorio(pesquisas, todasRespostas);
+ const sintese = funcoes.map(nome=>{
+  const respFuncao = respostas.filter(r=>normalizarFuncao(r.funcao) === nome || (nome === 'Funcao nao informada' && normalizarFuncao(r.funcao) === '-'));
+  const analise = analisarTodas(respFuncao);
+  return `${nome} | Respostas: ${respFuncao.length} | Nivel: ${analise.classe} | ${descricaoSinteseFuncao(analise)}`;
+ }).join('\n');
+ const fichas = funcoes.map(nome=>{
+  const respFuncao = respostas.filter(r=>normalizarFuncao(r.funcao) === nome || (nome === 'Funcao nao informada' && normalizarFuncao(r.funcao) === '-'));
+  return fichaRelatorioFuncao(nome, respFuncao, dados);
+ }).join('\n\n');
+
+ document.getElementById('relatorio').textContent =
+`ANEXO - INVENTARIO DE RISCOS PSICOSSOCIAIS POR FUNCAO
+Integracao dos achados do questionario ao Inventario de Riscos Ocupacionais do PGR
+
+1. Identificacao e finalidade
+
+Empregador:
+${dados.empregador || empresaSelecionada || 'Todas as empresas'}
+
+CNPJ / CNAE:
+${dados.cnpj || '-'} - ${dados.cnae || '-'} - ${textoGrauRisco(dados.grauRisco)}
+
+Instrumento:
+Questionario de riscos psicossociais baseado em dominios COPSOQ, aplicado por funcao/cargo.
+
+Finalidade:
+Incorporar os fatores de riscos psicossociais relacionados ao trabalho ao Inventario de Riscos e ao Plano de Acao do PGR, como perigos de natureza organizacional, por funcao.
+
+2. Criterio de classificacao adotado
+
+Os fatores psicossociais foram classificados por matriz de probabilidade e severidade, considerando o resultado coletivo das respostas por funcao. A avaliacao tem finalidade preventiva e ocupacional, nao configurando diagnostico clinico individual.
+
+Resultado geral do escopo:
+Respostas: ${respostas.length}
+Probabilidade: ${analiseGeral.prob.txt} (${analiseGeral.prob.nivel})
+Severidade: ${analiseGeral.sev.txt} (${analiseGeral.sev.nivel})
+Nivel do risco: ${analiseGeral.classe}
+
+3. Sintese por funcao
+
+${sintese}
+
+4. Fichas psicossociais por funcao
+
+${fichas}
+
+5. Observacoes finais
+
+As medidas relacionadas tem natureza preventiva, coletiva e organizacional e devem ser acompanhadas por indicadores internos como absenteismo, rotatividade, afastamentos, queixas, entrevistas e observacoes de campo. Recomenda-se reaplicacao periodica do instrumento, integrando o ciclo de revisao do PGR previsto na NR-1.`;
 }
 
 function limparDados(){
  if(confirm('Deseja apagar todas as respostas e pesquisas salvas neste navegador?')){
   empresaSelecionada = '';
+  funcaoSelecionada = '';
   localStorage.removeItem(STORAGE_RESPOSTAS);
   localStorage.removeItem(STORAGE_PESQUISAS);
   atualizarAdmin();
@@ -1075,7 +1207,8 @@ function limparDados(){
 }
 
 function nomeArquivoEscopo(ext){
- const base = empresaSelecionada ? empresaSelecionada.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'') : 'todas_empresas';
+ const escopo = [empresaSelecionada || 'todas_empresas', funcaoSelecionada || 'todas_funcoes'].join('_');
+ const base = escopo.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
  return `respostas_ms_tech_${base}.${ext}`;
 }
 
@@ -1099,10 +1232,10 @@ function exportarCSV(){
 function exportarExcel(){
  const lista = respostasDoEscopo(carregarRespostas());
  if(!lista.length){ alert('Nao ha respostas para exportar neste escopo.'); return; }
- const headers = ['Data','Pesquisa','Empregador','CNPJ','CNAE','Grau de risco','Classificacao'];
+ const headers = ['Data','Pesquisa','Empregador','Funcao','CNPJ','CNAE','Grau de risco','Classificacao'];
  const rows = lista.map(r => {
   const analise = analisarResposta(r);
-  return [r.data, r.pesquisaCodigo, r.empregador || r.empresa, r.cnpj || '', r.cnae || '', textoGrauRisco(r.grauRisco), analise.classe];
+  return [r.data, r.pesquisaCodigo, r.empregador || r.empresa, r.funcao || '', r.cnpj || '', r.cnae || '', textoGrauRisco(r.grauRisco), analise.classe];
  });
  const xmlHeader = `<?xml version="1.0" encoding="UTF-8"?>\n` +
   `<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ` +
